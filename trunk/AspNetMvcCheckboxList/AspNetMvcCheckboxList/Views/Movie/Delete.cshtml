@@ -1,0 +1,27 @@
+﻿@model AspNetMvcCheckboxList.Models.Movie
+
+@{
+    ViewBag.Title = "Movie";
+}
+
+<h3>Are you sure you want to delete this?</h3>
+<fieldset>
+    <legend>Movie</legend>
+
+    <div class="display-label">@Html.LabelFor(model => model.MovieName)</div>
+    <div class="display-field">@Html.DisplayFor(model => model.MovieName)</div>
+
+    <div class="display-label">@Html.LabelFor(model => model.MovieDescription)</div>
+    <div class="display-field">@Html.DisplayFor(model => model.MovieDescription)</div>
+
+    <div class="display-label">@Html.LabelFor(model => model.YearReleased)</div>
+    <div class="display-field">@Html.DisplayFor(model => model.YearReleased)
+    </div>
+</fieldset>
+@using (Html.BeginForm()) {
+    <p>
+        @Html.Hidden("id", Model.MovieId)
+        <input type="submit" value="Delete" /> |
+        @Html.ActionLink("Back to List", "Index")
+    </p>
+}
