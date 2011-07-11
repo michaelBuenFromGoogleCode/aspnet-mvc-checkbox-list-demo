@@ -31,7 +31,7 @@ namespace AspNetMvcCheckboxList.Controllers
                 using (var s = Mapper.GetSessionFactory().OpenSession())
                 using (var tx = s.BeginTransaction())
                 {
-                    s.Delete(s.Get<Movie>(id));
+                    s.Delete(s.Load<Movie>(id));
                     tx.Commit();                    
                 }
                 return RedirectToAction("Index");
