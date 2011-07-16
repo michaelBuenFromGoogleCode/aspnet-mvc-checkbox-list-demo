@@ -7,6 +7,7 @@ using AspNetMvcCheckboxList.ViewsModels;
 
 using NHibernate.Linq;
 using AspNetMvcCheckboxList.Models;
+using NHibernate;
 
 
 
@@ -64,30 +65,48 @@ namespace AspNetMvcCheckboxList.Controllers
             using (var s = Mapper.GetSessionFactory().OpenSession())
             using (var tx = s.BeginTransaction())
             {
-                bool isNew = input.TheMovie.MovieId == 0;
-               
-                input.SelectedGenres = input.SelectedGenres ?? new List<int>();
-                
-                input.TheMovie.Genres = new List<Genre>();
-                foreach (int g in input.SelectedGenres) 
-                    input.TheMovie.Genres.Add(s.Load<Genre>(g));
-                               
-                s.SaveOrUpdate(input.TheMovie); // Primary key(MovieId) is automatically set with SaveOrUpdate               
-                tx.Commit();
+                try
+                {
+                    bool isNew = input.TheMovie.MovieId == 0;
+
+                    input.SelectedGenres = input.SelectedGenres ?? new List<int>();
+                    input.GenreSelections = s.Query<Genre>().OrderBy(x => x.GenreName).ToList();
+
+                    input.TheMovie.Genres = new List<Genre>();
+                    foreach (int g in input.SelectedGenres)
+                        input.TheMovie.Genres.Add(s.Load<Genre>(g));
 
 
-                
+                    s.SaveOrUpdate(input.TheMovie); // Primary key(MovieId) is automatically set with SaveOrUpdate, and the row version (Version) field too.
 
-                ModelState.Remove("TheMovie.MovieId");
+                    /* Use this if you want dynamic update(not all columns are set, only those that are changed),
+                     * making NH similar to EF. Note: remove s.SaveOrUpdate, leave tx.Commit only
+                    var m = s.Load<Movie>(input.TheMovie.MovieId);
+                    UpdateModel(m, "TheMovie");*/
 
-                // No need to remove TheMovie.Version, ASP.NET MVC is not preserving the ModelState of variables with byte array type.
-                // Hence, with byte array, the HiddenFor will always gets its value from the model, not from the ModelState
-                // ModelState.Remove("TheMovie.Version"); 
+                    tx.Commit();
 
-                
 
-                input.MessageToUser = string.Format("Saved. {0}", isNew ? "ID is " + input.TheMovie.MovieId : "");
-                input.GenreSelections = s.Query<Genre>().OrderBy(x => x.GenreName).ToList();
+
+
+
+
+                    ModelState.Remove("TheMovie.MovieId");
+
+                    // No need to remove TheMovie.Version, ASP.NET MVC is not preserving the ModelState of variables with byte array type.
+                    // Hence, with byte array, the HiddenFor will always gets its value from the model, not from the ModelState
+                    // ModelState.Remove("TheMovie.Version"); 
+
+
+
+                    input.MessageToUser = string.Format("Saved. {0}", isNew ? "ID is " + input.TheMovie.MovieId : "");
+
+                }
+                catch (StaleObjectStateException)
+                {
+                    ModelState.AddModelError(string.Empty,
+                        "The record you attempted to edit was already modified by another user since you last loaded it. Open the latest changes on this record");
+                }
                                
             }
             

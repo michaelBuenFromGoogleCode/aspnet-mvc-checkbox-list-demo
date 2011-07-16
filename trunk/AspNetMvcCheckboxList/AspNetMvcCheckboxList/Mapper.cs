@@ -34,10 +34,12 @@ namespace AspNetMvcCheckboxList
                             (
                                 AutoMap.AssemblyOf<MvcApplication>(new CustomConfiguration())
                                    .Conventions.Add(ForeignKey.EndsWith("Id"))
+                                   // .Conventions.Add(DynamicUpdate.AlwaysTrue())
                                    .Conventions.Add<RowversionConvention>()  
-                                   .Override<Movie>(x => x.HasManyToMany(y => y.Genres).Table("MovieAssocGenre"))
-                                   .Override<Genre>(x => x.HasManyToMany(y => y.Movies).Table("MovieAssocGenre"))
+                                   .Override<Movie>(x => x.HasManyToMany(y => y.Genres).Table("MovieAssocGenre").ParentKeyColumn("MovieId").ChildKeyColumn("GenreId"))
+                                   .Override<Genre>(x => x.HasManyToMany(y => y.Movies).Table("MovieAssocGenre").ParentKeyColumn("GenreId").ChildKeyColumn("MovieId"))                                  
                             )
+                            
                     // .ExportTo(@"C:\_Misc\NH")                
                     );
 
