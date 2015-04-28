@@ -1,0 +1,1 @@
+checkboxlist mechanism on ASP.NET MVC
